@@ -38,30 +38,337 @@
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
         </div>
 
-        <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+        <hr>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</p>
+<p>This document will provide an overview of how the Bifrozt deployment should look like and how it will work once it's complete, define the requirements for this deployment, explain the two different ways to deploy Bifrozt and provide a step by step instruction of the most common method.</p>
 
-<h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Designer Templates</h3>
+<hr>
 
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
+<h4>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview.</h4>
 
-<h3>
-<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating pages manually</h3>
+<p>Generally speaking, Bifrozt is a NAT device with a DHCP server that is usually deployed with one NIC (eth0) connected directly to the Internet and one NIC (eth1) connected to the internal network.<br></p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p><img src="https://www.honeynet.org/sites/default/files/images/deploy_example.png" alt="Example deployment"></p>
 
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<p>What differentiates Bifrozt from other standard NAT devices is its ability to work as a transparent SSHv2 proxy between an attacker and your honeypot. The software that's being used as a SSHv2 proxy is called <a href="https://github.com/tnich/honssh">HonSSH</a> and has been developed by Thomas Nicholson.
+<br><br>
+If you deployed a SSH server on Bifrozt's internal network it would log all the interaction to a TTY file in plain text that could be viewed later and capture a copy of any files that were downloaded. You do not have to install any additional software, compile any kernel modules or use a specific version or type of operating system on the internal SSH server for this to work
+<br><br>
+To prevent the attackers from using the honeypot to attack other systems it will limit outbound traffic to a set number of ports, number of connections and the amount of packets being sent, if the firewall finds that any of these limits are exceeded it will start to drop the connections and/or packets sent.</p>
 
-<p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<hr>
 
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
+<h4>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements.</h4>
 
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
+<h5>
+<a id="hardware" class="anchor" href="#hardware" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Hardware.</h5>
+
+<p>Minimum hardware requirements (recommended within parenthesis).</p>
+
+<p>Bifrozt</p>
+
+<ul>
+<li>2x network interface cards</li>
+<li>1 GB RAM (2 GB or more recommended)</li>
+<li>10 GB Hard drive (20 GB or more recommended)</li>
+<li>1 CPU (2 or more recommended)</li>
+</ul>
+
+<p>Honeypot</p>
+
+<ul>
+<li>The hardware requirements should reflect the type of server thats being offered.</li>
+</ul>
+
+<h5>
+<a id="software" class="anchor" href="#software" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Software</h5>
+
+<p>Bifrozt</p>
+
+<ul>
+<li>Running Ubuntu 14.04 or later (server version recommended but, works with Desktop version as well).</li>
+<li>OpenSSH server (will be added automatically if using local installation method)</li>
+</ul>
+
+<p>Honeypot</p>
+
+<ul>
+<li>OpenSSH server</li>
+</ul>
+
+<hr>
+
+<h4>
+<a id="installation-options" class="anchor" href="#installation-options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation options.</h4>
+
+<p>There are mainly two ways of installing the components that turns a system into a honeypot router (aka. Bifrozt)</p>
+
+<ul>
+<li>
+<strong>Install locally using Ansible.</strong><br>  If you only plan in using a single instance of Bifrozt (which is the most common way of doing it) you should install it locally.</li>
+<li>
+<strong>Install from a Ansible control machine.</strong><br>  If you have a large infrastructure, plan on deploying Bifrozt to multiple nodes or already have a Ansible control machine installed its only natural to deploy Bifrozt from that.</li>
+</ul>
+
+<p>If you already are using Ansible and have a control machine I assume that you are able to deploy without any further instructions. 
+<br></p>
+
+<h5>
+<a id="install-locally-using-ansible" class="anchor" href="#install-locally-using-ansible" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install locally using Ansible.</h5>
+
+<p>This is the most common way of deploying Bifrozt but, can also be a bit tricky if you never used Ansible before, so i've created a bash script that does most of the tasks for you.<br>
+Even tho i've created this script i'd like you to be aware of what this script is doing, this will help you troubleshoot any potential issues with it and give a better understanding of the process.
+<br><br>
+When executed it will preform three checks that <strong>must</strong> be passed</p>
+
+<ul>
+<li>The executing user is <em>root</em>.</li>
+<li>The operating system is <em>Ubuntu</em>.</li>
+<li>The system has two network interface cards (not counting local interface) and both starts with <em>eth</em>.</li>
+</ul>
+
+<p>If all three check are passed you should see something like this</p>
+
+<pre><code>2016-03-09 18:16:30 - Are we root?...Yes
+2016-03-09 18:16:30 - Is this operating system Ubuntu?...Yes
+2016-03-09 18:16:30 - Do we have two network interface cards?...Yes
+</code></pre>
+
+<p>The script will then execute the listed tasks in sequential order</p>
+
+<ul>
+<li>Install all available updates</li>
+<li>Add the PPA for Ansible</li>
+<li>Install ansible, git and OpenSSH server (if not installed already)</li>
+<li>Grab the latest version of <a href="https://github.com/Bifrozt/bifrozt-ansible">bifrozt-ansible</a>
+</li>
+<li>Generate SSH keys that will be used by Ansible</li>
+<li>Run the Ansible playbook that configures as Bifrozt. This playbook will also remove the Ansible software and the generated SSH keys. If this playbook completes without any issues, it will reboot the machine and the installation is complete.</li>
+</ul>
+
+<p>To run the playbook locally on the machine you would like to use as Bifrozt, execute the following commands<br>
+<code>wget https://raw.githubusercontent.com/Bifrozt/bifrozt-ansible/master/bifrozt_setup.sh</code><br></p>
+
+<p>This will download the <code>bifrozt_setup.sh</code>, to run it you have to find the MAC address of your honeypot. The MAC address must be given as an argument to the script as shown in the example below.</p>
+
+<p><code>sudo bash bifrozt_setup.sh 00:11:22:33:44:55</code><br>
+<br></p>
+
+<p>When the script completes you should see the following lines:<br></p>
+
+<pre><code>2016-03-09 18:21:36 - The SSH server is now running on TCP port: 53725
+2016-03-09 18:21:36 - Applying new firewall rules...
+2016-03-09 18:21:36 - The firewall is now accepting SSH connections on TCP port: 53725
+2016-03-09 18:21:36 - bifrozt_setup.sh has completed its execution. Do the following:
+2016-03-09 18:21:36 - Note what port SSH is running on.
+2016-03-09 18:21:36 - If the honeypot is running, shut it off.
+2016-03-09 18:21:36 - Reboot Bifrozt (this machine).
+2016-03-09 18:21:36 - Start the honeypot machine once Bifrozt is rebooted.
+2016-03-09 18:21:36 - Start HonSSH with: sudo honsshctrl start.
+</code></pre>
+
+<ul>
+<li>Its important that you take note of which port the SSH server will be running on,<code>53725</code> in this example, as its randomly generated during the setup.<br>
+</li>
+<li>If the honeypot is running, power it off.</li>
+<li>Reboot the Bifrozt machine.</li>
+<li>When the Bifrozt machine has rebooted, start the honeypot.</li>
+<li>When the honeypot is running, start HonSSH: <code>sudo honsshctrl start</code>. The <code>honsshctrl</code> script will start HonSSH in the background and start to tail the application log (<code>/opt/honssh/logs/honssh.log</code>), you can stop tailing the log using CTRL+C without stopping HonSSH.</li>
+</ul>
+
+<hr>
+
+<p>Example of what the <code>bifrozt_setup.sh</code> script will look like.<br></p>
+
+<pre><code>========= bifrozt_setup.sh - 0.0.5 - 2016, Feb 24 - Are Hansen =========
+
+2016-03-09 18:16:30 - Are we root?...Yes
+2016-03-09 18:16:30 - Is this operating system Ubuntu?...Yes
+2016-03-09 18:16:30 - Do we have two network interface cards?...Yes
+2016-03-09 18:16:30 - Installing all avalible system updates...
+2016-03-09 18:18:42 - Installing some minor dependencies...
+2016-03-09 18:18:42 - Adding Ansible PPA... 
+2016-03-09 18:18:43 - Installing Ansible... 
+2016-03-09 18:19:05 - Grabbing a clone of https://github.com/Bifrozt/bifrozt-ansible.git...
+2016-03-09 18:19:06 - Generating Ansible SSH keys...
+2016-03-09 18:19:07 - Setting up authentication key for root user (will be removed later)...
+2016-03-09 18:19:07 - Executing the playbook now...
+
+PLAY [Converting system into a honeypot router] ********************************
+
+TASK [setup] *******************************************************************
+ok: [192.168.90.41]
+
+TASK [software : Running apt-get update] ***************************************
+ok: [192.168.90.41]
+
+TASK [software : Running apt-get upgrade] **************************************
+changed: [192.168.90.41]
+
+TASK [software : Installing dependecies from official apt repo] ****************
+changed: [192.168.90.41] =&gt; (item=[u'athena-jot', u'git', u'htop', u'isc-dhcp-server', u'ngrep', u'python-geoip', u'python-mysqldb', u'python-pip', u'python-twisted', u'tcpdump', u'tcpflow', u'tmux', u'vim', u'wget', u'whois'])
+
+TASK [software : Installing dependencies from pip] *****************************
+changed: [192.168.90.41] =&gt; (item=geoip2)
+ok: [192.168.90.41] =&gt; (item=requests)
+
+TASK [system : Creating logrotation for /var/log/firewall.log] *****************
+changed: [192.168.90.41]
+
+TASK [system : Setting permissions on /etc/logrotate.d/iptables] ***************
+ok: [192.168.90.41]
+
+TASK [system : Costumizing sysctl.conf] ****************************************
+changed: [192.168.90.41]
+
+TASK [system : Setting permissions on /etc/sysctl.conf] ************************
+changed: [192.168.90.41]
+
+TASK [system : Creating rsyslog for iptables] **********************************
+changed: [192.168.90.41]
+
+TASK [system : Setting permissions on /etc/rsyslog.d/13-iptables] **************
+ok: [192.168.90.41]
+
+TASK [system : Setting custom interval for rotating firewall.log] **************
+changed: [192.168.90.41]
+
+TASK [system : Setting correct permissions on /var/log/firewall.log] ***********
+changed: [192.168.90.41]
+
+TASK [system : Setting permissions on /var/spool/cron/crontabs/root] ***********
+changed: [192.168.90.41]
+
+TASK [system : Preparing HonSSH to start at boot] ******************************
+changed: [192.168.90.41]
+
+TASK [system : Setting permissions on /etc/rc.local] ***************************
+ok: [192.168.90.41]
+
+TASK [network : Configuring sshd to run on tcp/60777] **************************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/ssh/sshd_config] *******************
+ok: [192.168.90.41]
+
+TASK [network : Setting up isc-dhcp-server configuration] **********************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/dhcp/dhcpd.conf] *******************
+ok: [192.168.90.41]
+
+TASK [network : Configuring isc-dhcp-server to run on eth1] ********************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/default/isc-dhcp-server] ***********
+ok: [192.168.90.41]
+
+TASK [network : Configuring network interfaces] ********************************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/network/interfaces] ****************
+ok: [192.168.90.41]
+
+TASK [network : Setting up iptables for IPv4] **********************************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/network/ipv4hater] *****************
+ok: [192.168.90.41]
+
+TASK [network : Setting up iptables for IPv6] **********************************
+changed: [192.168.90.41]
+
+TASK [network : Setting permissions on /etc/network/ipv6hater] *****************
+ok: [192.168.90.41]
+
+TASK [honssh : Cloning the latest version of HonSSH] ***************************
+changed: [192.168.90.41]
+
+TASK [honssh : Removing default honsshctrl.sh] *********************************
+changed: [192.168.90.41]
+
+TASK [tools : Preparing to install custom Python modules] **********************
+changed: [192.168.90.41]
+
+TASK [tools : Installing Python modules] ***************************************
+changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/__init__.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/__init__.py'})
+changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/files.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/files.py'})
+changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/geoloc.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/geoloc.py'})
+changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/sendto.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/sendto.py'})
+
+TASK [tools : Installing auth_info] ********************************************
+changed: [192.168.90.41]
+
+TASK [tools : Setting permissions on auth_info] ********************************
+changed: [192.168.90.41]
+
+TASK [tools : Installing bifrozt_config] ***************************************
+changed: [192.168.90.41]
+
+TASK [tools : Setting permissions on bifrozt_config] ***************************
+changed: [192.168.90.41]
+
+TASK [tools : Preparing to download GeoLite2-City database from Maxmind] *******
+changed: [192.168.90.41]
+
+TASK [tools : Removing default honsshctrl.sh] **********************************
+ok: [192.168.90.41]
+
+TASK [tools : Installing custom honsshctrl] ************************************
+changed: [192.168.90.41]
+
+TASK [tools : Setting permissions on /usr/local/bin/honsshctrl] ****************
+changed: [192.168.90.41]
+
+TASK [tools : Installing latests version of GeoLite2-City database from Maxmind] ***
+changed: [192.168.90.41]
+
+TASK [tools : Unpacking GeoLite2-City database from Maxmind] *******************
+changed: [192.168.90.41]
+
+TASK [cleanup : Removing all SSH keys and files that were used by Ansible] *****
+changed: [192.168.90.41] =&gt; (item=/etc/ansible/BZKEY/id_rsa)
+changed: [192.168.90.41] =&gt; (item=/etc/ansible/BZKEY/id_rsa.pub)
+changed: [192.168.90.41] =&gt; (item=/root/.ssh/authorized_keys)
+ok: [192.168.90.41] =&gt; (item=/root/.ssh/id_rsa)
+ok: [192.168.90.41] =&gt; (item=/root/.ssh/id_rsa.pub)
+changed: [192.168.90.41] =&gt; (item=/root/.ssh/known_hosts)
+
+TASK [cleanup : Starting purge of Ansible software] ****************************
+changed: [192.168.90.41]
+
+PLAY RECAP *********************************************************************
+192.168.90.41                : ok=44   changed=32   unreachable=0    failed=0   
+
+2016-03-09 18:21:36 - Assigning a randomized IPv4 address to the honeypot...
+2016-03-09 18:21:36 - Updating the MAC address of the honeypot...
+2016-03-09 18:21:36 - Generating new DHCP network...
+2016-03-09 18:21:36 - DHCP will be using this network: 10.120.197.0/24
+2016-03-09 18:21:36 - The honeypot will be assigned this IPv4 address: 10.120.197.106
+2016-03-09 18:21:36 - Updating configuration on interface eth1...
+2016-03-09 18:21:36 - Updating honssh.cfg.default...
+2016-03-09 18:21:36 - Making active configuration file, honssh.cfg, from honssh.cfg.default...
+2016-03-09 18:21:36 - Restarting the eth1 interface...
+2016-03-09 18:21:36 - IPv4 address has been assigned to the eth1 interface: 10.120.197.1
+2016-03-09 18:21:36 - Restarting DHCP server...
+2016-03-09 18:21:36 - Selecting a new SSH port for Bifrozt administration...
+2016-03-09 18:21:36 - Updating sshd_config...
+2016-03-09 18:21:36 - Updating firewall rules...
+2016-03-09 18:21:36 - Restarting SSH server...
+2016-03-09 18:21:36 - The SSH server is now running on TCP port: 53725
+2016-03-09 18:21:36 - Applying new firewall rules...
+2016-03-09 18:21:36 - The firewall is now accepting SSH connections on TCP port: 53725
+2016-03-09 18:21:36 - bifrozt_setup.sh has completed its execution. Do the following:
+2016-03-09 18:21:36 - Note what port SSH is running on.
+2016-03-09 18:21:36 - If the honeypot is running, shut it off.
+2016-03-09 18:21:36 - Reboot Bifrozt (this machine).
+2016-03-09 18:21:36 - Start the honeypot machine once Bifrozt is rebooted.
+2016-03-09 18:21:36 - Start HonSSH with: sudo honsshctrl start.
+</code></pre>
+
+<hr>
       </section>
 
     </div>
