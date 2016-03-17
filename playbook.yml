@@ -3,7 +3,6 @@
 - name: Starting Bifrozt setup
   hosts: bifrozt
   remote_user: root
-  no_log: True
   roles:
    - software
    - system
