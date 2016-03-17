@@ -16,11 +16,14 @@
 - name: Setting permissions on auth_info
   file: path=/usr/local/bin/auth_info owner=root group=root mode=0755
 
-- name: Installing bifrozt_config
-  template: src=usr/local/bin/bifrozt_config dest=/usr/local/bin/bifrozt_config
+- name: Removing default playlog.py
+  file: path=/opt/honssh/utils/playlog.py state=absent
 
-- name: Setting permissions on bifrozt_config
-  file: path=/usr/local/bin/bifrozt_config owner=root group=root mode=0755
+- name: Installing playlog.py into PATH
+  template: src=usr/local/bin/playlog dest=/usr/local/bin/playlog
+
+- name: Setting permissions on /usr/local/bin/playlog
+  file: path=/usr/local/bin/playlog owner=root group=root mode=0755
 
 - name: Preparing to download GeoLite2-City database from Maxmind
   file: path=/etc/geoip2 state=directory owner=root group=root mode=0755

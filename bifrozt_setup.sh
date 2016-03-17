@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 #
 #   Copyright (c) 2016, Are Hansen - Honeypot Development.
 #
@@ -63,13 +64,16 @@
 #     * Added some additional execution checks.
 #     * Script will print post-execution steps after all setup task has
 #       completed without errors.
-#     * Optimized clean up function slightly to prevent it from deleting
+#     * Optimized cleanup function slightly to prevent it from deleting
 #       certain files and directories.
+#     * Supressed output from Ansible playbook.
 #
 #   --------------------------------------------------------------
 #
 #
-set -e
+declare version="0.0.7"
+declare author="Are Hansen"
+declare created="2016-02-24"
 declare -rx Script="${0##*/}"
 declare honssh_dir="/opt/honssh"
 declare git_bzans="https://github.com/Bifrozt/bifrozt-ansible.git"
@@ -83,11 +87,8 @@ declare dhcpd_conf="/etc/dhcp/dhcpd.conf"
 declare sshd_conf="/etc/ssh/sshd_config"
 declare dst_bzans="/tmp/bifrozt-ansible"
 declare bz_key="/etc/ansible/BZKEY"
-declare created="2016, Feb 24"
-declare author="Are Hansen"
-declare version="0.0.7"
-declare red='\033[1;31m'
 declare rdb='\033[1;7;31m'
+declare red='\033[1;31m'
 declare grn='\033[1;32m'
 declare ylw='\033[1;33m'
 declare blu='\033[1;34m'
@@ -99,11 +100,11 @@ declare end='\033[0m'
 function script_banner()
 {
 echo -e "
-          ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
+          ${rdb}YOU ARE USING THE DEVELOPMENT BRANCH OF THIS REPO${end}
 
 ${wht}=========${end} ${grn}$Script${end} ${wht}-${end} ${grn}$version${end} ${wht}-${end} ${grn}$created${end} ${wht}-${end} ${grn}$author${end} ${wht}=========${end}
 
-          ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
+          ${rdb}YOU ARE USING THE DEVELOPMENT BRANCH OF THIS REPO${end}
 "
 }
 
@@ -119,7 +120,7 @@ function time_stamp()
 
     if [ -z "$1" ]
     then
-        echo -e "$time ${wht}[${end}${red}FATAL${end}]${wht}: $FUNCNAME requires two arguments, one entry string and one exit code.${end}"
+        echo -e "$time ${wht}[${end}${rdb}FATAL${end}]${wht}: $FUNCNAME requires two arguments, one entry string and one exit code.${end}"
         exit 1
     fi
 
@@ -139,7 +140,7 @@ function time_stamp()
             echo -e "$time ${wht}[${end}${blu}TASK${end}${wht}]: $1 ${end}"
             ;;
         *)
-            echo -e "$time ${wht}[${end}${red}FATAL${end}${wht}]: $FUNCNAME will only accept 0, 1, 2 or 3 as exit codes. ${end}"
+            echo -e "$time ${wht}[${end}${rdb}FATAL${end}${wht}]: $FUNCNAME will only accept 0, 1, 2 or 3 as exit codes. ${end}"
             exit 1
             ;;
     esac
@@ -223,7 +224,7 @@ function verify_clean()
 
     if [ -e "/root/.ssh/authorized_keys" ]
     then
-        time_stamp "Removing /root/.ssh/authorized_keys..." "3"
+        time_stamp "Removing \"/root/.ssh/authorized_keys\"..." "3"
         rm "/root/.ssh/authorized_keys" \
         || time_stamp "Encountered an issue while removing \"/root/.ssh/authorized_keys\"." "1"
         time_stamp "The \"/root/.ssh/authorized_keys\" file was removed." "0"
@@ -426,7 +427,7 @@ function run_play()
 
     if [ "$ansible_exit" != "0" ]
     then
-        time_stamp "Playbook exited with: $ansible_exit" "1"
+        time_stamp "Playbook exited with: $ansible_exit. Investigate \"/var/log/syslog\" to troubleshoot." "1"
     fi
 }
 
@@ -622,21 +623,21 @@ function env_checks()
 {
     if [ "$(id -u)" = "0" ]
     then
-        time_stamp "Are we root?...${grn}Yes${end}." "0"
+        time_stamp "Are we root?...${grn}Yes${end}" "0"
     else
         time_stamp "$Script must be executed as root or with root privileges." "1"
     fi
 
     if [ "$(check_distro)" = "Ubuntu" ]
     then
-        time_stamp "Are we running Ubuntu?...${grn}Yes${end}." "0"
+        time_stamp "Are we running Ubuntu?...${grn}Yes${end}" "0"
     else
         time_stamp "Ubuntu is required in order to run $Script." "1"
     fi
 
     if [ "$(check_if)" -ge "2" ]
     then
-        time_stamp "Do we have two network interface cards?...${grn}Yes${end}." "0"
+        time_stamp "Do we have two network interface cards?...${grn}Yes${end}" "0"
     else
         time_stamp "This machine has less than two network interface cards. $Script expected to find \"eth0\" and \"eth1\"." "1"
     fi

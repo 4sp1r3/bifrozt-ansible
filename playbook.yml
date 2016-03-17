@@ -1,5 +1,5 @@
 ---
-# Converts a Ubuntu into a honeypot router
+# Converts Ubuntu into a honeypot router
 - name: Starting Bifrozt setup
   hosts: bifrozt
   remote_user: root
