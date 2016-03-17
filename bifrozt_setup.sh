@@ -67,6 +67,7 @@ set -e
 #     * Optimized cleanup function slightly to prevent it from deleting
 #       certain files and directories.
 #     * Supressed output from Ansible playbook.
+#     * The git_clone function can now diffirentiate between git branches.
 #
 #   --------------------------------------------------------------
 #
@@ -100,16 +101,13 @@ declare end='\033[0m'
 function script_banner()
 {
 echo -e "
-          ${rdb}YOU ARE USING THE DEVELOPMENT BRANCH OF THIS REPO${end}
 
 ${wht}=========${end} ${grn}$Script${end} ${wht}-${end} ${grn}$version${end} ${wht}-${end} ${grn}$created${end} ${wht}-${end} ${grn}$author${end} ${wht}=========${end}
 
-          ${rdb}YOU ARE USING THE DEVELOPMENT BRANCH OF THIS REPO${end}
 "
 }
 
 
-# Time stamp.
 # Return time stamp and information string.
 # ARG 1: Information string.
 # ARG 2: Exit code.
@@ -117,13 +115,11 @@ function time_stamp()
 {
     time="${wht}$(date +"%Y-%m-%d %T") -${end}"
 
-
     if [ -z "$1" ]
     then
         echo -e "$time ${wht}[${end}${rdb}FATAL${end}]${wht}: $FUNCNAME requires two arguments, one entry string and one exit code.${end}"
         exit 1
     fi
-
 
     case "$2" in
         0)
@@ -182,7 +178,7 @@ function ipv4_if()
 }
 
 
-# Returns the port number thats defined in the sshd_config file.
+# Returns the port number thats defined in the current sshd_config file.
 function get_ssh_port()
 {
     if [ ! -e "$sshd_conf" ]
@@ -198,11 +194,7 @@ function get_ssh_port()
 # Checks if the system has a previously downloaded bifrozt-ansible repo, Ansible SSH keys,
 # root autorized_keys, Ansible PPA or fi Ansible is installed. Any of these items will be
 # purged from the system before the setup will comence.
-# Requires one out of two arguments to be passed,
-#   - startup
-#   - cleanup
-# The 'startup' argument will preform pre-execution clean up
-# while the 'cleanup' argument runs the post-execution clean up. 
+# The function expectes one or zero arguments.
 function verify_clean()
 {
     
@@ -290,10 +282,10 @@ function apt_get_things()
     || time_stamp "Failure occured while running apt-get upgrade." "1"
     time_stamp "All avalible system updates have been installed." "0"
 
-    time_stamp "Installing some minor dependencies..." "3"
+    time_stamp "Installing base dependencies..." "3"
     apt-get install software-properties-common git openssh-server -y &>/dev/null \
     || time_stamp "Failure occured while running apt-get install software-properties-common git openssh-server." "1"
-    time_stamp "Minor dependencies has been installed." "0"
+    time_stamp "Base dependencies has been installed." "0"
 
     time_stamp "Adding Ansible PPA... " "3"
     apt-add-repository ppa:ansible/ansible -y &>/dev/null \
@@ -312,6 +304,7 @@ function apt_get_things()
         time_stamp "$ansible_cfg was not found." "1"
     else
         time_stamp "Configuring Ansible..." "3"
+
         if [ ! -d "$bz_key" ]
         then
             mkdir "$bz_key" \
@@ -321,8 +314,10 @@ function apt_get_things()
             chown root:root "$bz_key" \
             || time_stamp "Failed to set ownership on $bz_key." "1"
         fi
+
         curr_str="#private_key_file = \/path\/to\/file"
         keys_str="private_key_file = \/etc\/ansible\/BZKEY\/id_rsa"
+
         sed -i "s/$curr_str/$keys_str/g" "$ansible_cfg" \
         || time_stamp "Failure occured when updating private_key_file location in $ansible_cfg." "1"
         sed -i 's/#host_key_checking/host_key_checking/g' "$ansible_cfg" \
@@ -333,8 +328,9 @@ function apt_get_things()
 
 
 # Clone git repo to destination.
-# ARG 1: GitHub repo URL
-# ARG 2: Local path
+# ARG 1: GitHub repo URL.
+# ARG 2: Local path.
+# ARG 3: Branch name.
 function git_clone()
 {
     if [ -z "$1" ]
@@ -347,10 +343,10 @@ function git_clone()
         time_stamp "Did not receive path to local destination." "1"
     fi
 
-    time_stamp "Grabbing a clone of $1...${rdb}DEVELOPMENT BRANCH${end}" "3"
-    git clone -b development "$1" "$2" &>/dev/null \
-    || time_stamp "git clone $1 failed." "1"
-    time_stamp "Completed cloning of $1.${rdb}DEVELOPMENT BRANCH${end}" "0"
+    time_stamp "Cloning $3 branch of Bifrozt into $2..." "3"
+    git clone -b "$3" "$1" "$2" &>/dev/null \
+    || time_stamp "git clone -b $3 $1 failed." "1"
+    time_stamp "The $3 branch of Bifrozt has been cloned into $2." "0"
 }
 
 
@@ -585,7 +581,7 @@ function check_mac()
 }
 
 
-# Returns the IPv4 address from the dhcpd.conf
+# Returns the IPv4 address from the dhcpd.conf.
 function honey_ip()
 {
     if [ ! -f "$dhcpd_conf" ]
@@ -644,14 +640,14 @@ function env_checks()
 }
 
 
-# Preforms some very simple sanity checking before calling the required functions
+# Call functions and pass arguments.
 function main()
 {
     script_banner
     verify_clean "startup"
     env_checks
     apt_get_things
-    git_clone "$git_bzans" "$dst_bzans"
+    git_clone "master" "$git_bzans" "$dst_bzans"
     gen_ssh_keys "$bz_key"
     run_play "$dst_bzans/playbook.yml" "$dst_bzans/hosts"
     setup_dhcp "$1"
