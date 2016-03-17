@@ -647,7 +647,7 @@ function main()
     verify_clean "startup"
     env_checks
     apt_get_things
-    git_clone "master" "$git_bzans" "$dst_bzans"
+    git_clone "$git_bzans" "$dst_bzans" "master"
     gen_ssh_keys "$bz_key"
     run_play "$dst_bzans/playbook.yml" "$dst_bzans/hosts"
     setup_dhcp "$1"
