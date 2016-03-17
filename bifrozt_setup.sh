@@ -99,11 +99,11 @@ declare end='\033[0m'
 function script_banner()
 {
 echo -e "
-                ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
+          ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
 
 ${wht}=========${end} ${grn}$Script${end} ${wht}-${end} ${grn}$version${end} ${wht}-${end} ${grn}$created${end} ${wht}-${end} ${grn}$author${end} ${wht}=========${end}
 
-                ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
+          ${rdb}YOU ARE USING THE DEVELOPMENT BRACH OF THIS REPO${end}
 "
 }
 
@@ -384,11 +384,6 @@ function gen_ssh_keys()
     chmod 0600 "$bz_key/id_rsa.pub" \
     || time_stamp "Failed to set permissions on \"$bz_key/id_rsa.pub\"." "1"
     time_stamp "Authentication key for root has been created." "0"
-
-    #time_stamp "Updating private_key_file location in $ansible_cfg." "2"
-    #sed -i "s/$curr_str/$keys_str/g" "$ansible_cfg" \
-    #|| time_stamp "Failure occured when updating private_key_file location in $ansible_cfg." "1"
-    #time_stamp "Update of private_key_file location in $ansible_cfg completed." "0"
 }
 
 
@@ -421,8 +416,18 @@ function run_play()
     sed -i "s/IPv4_OR_FQDN/$IPV4/g" "$2"
 
     time_stamp "Executing the playbook now..." "3"
-    echo -e "${wht}" ; ansible-playbook "$1" -i "$2" ; echo -e "${end}"
-    time_stamp "Playbook execution completed." "0"
+    ansible-playbook "$1" -i "$2" &>/dev/null
+    ansible_exit="$?"
+
+    if [ "$ansible_exit" = "0" ]
+    then
+        time_stamp "Playbook exited with: $ansible_exit" "0"
+    fi
+
+    if [ "$ansible_exit" != "0" ]
+    then
+        time_stamp "Playbook exited with: $ansible_exit" "1"
+    fi
 }
 
 
