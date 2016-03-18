@@ -110,25 +110,6 @@ When executed it will preform three checks that <strong>must</strong> be passed<
 <li>The system has two network interface cards (not counting local interface) and both starts with <em>eth</em>.</li>
 </ul>
 
-<p>If all three check are passed you should see something like this</p>
-
-<pre><code>2016-03-09 18:16:30 - Are we root?...Yes
-2016-03-09 18:16:30 - Is this operating system Ubuntu?...Yes
-2016-03-09 18:16:30 - Do we have two network interface cards?...Yes
-</code></pre>
-
-<p>The script will then execute the listed tasks in sequential order</p>
-
-<ul>
-<li>Install all available updates</li>
-<li>Add the PPA for Ansible</li>
-<li>Install ansible, git and OpenSSH server (if not installed already)</li>
-<li>Grab the latest version of <a href="https://github.com/Bifrozt/bifrozt-ansible">bifrozt-ansible</a>
-</li>
-<li>Generate SSH keys that will be used by Ansible</li>
-<li>Run the Ansible playbook that configures as Bifrozt. This playbook will also remove the Ansible software and the generated SSH keys. If this playbook completes without any issues, it will reboot the machine and the installation is complete.</li>
-</ul>
-
 <p>To run the playbook locally on the machine you would like to use as Bifrozt, execute the following commands<br>
 <code>wget https://raw.githubusercontent.com/Bifrozt/bifrozt-ansible/master/bifrozt_setup.sh</code><br></p>
 
@@ -137,216 +118,104 @@ When executed it will preform three checks that <strong>must</strong> be passed<
 <p><code>sudo bash bifrozt_setup.sh 00:11:22:33:44:55</code><br>
 <br></p>
 
-<p>When the script completes you should see the following lines:<br></p>
+<p>When the script completes you will see a post setup summary, similar to this:<br></p>
 
-<pre><code>2016-03-09 18:21:36 - The SSH server is now running on TCP port: 53725
-2016-03-09 18:21:36 - Applying new firewall rules...
-2016-03-09 18:21:36 - The firewall is now accepting SSH connections on TCP port: 53725
-2016-03-09 18:21:36 - bifrozt_setup.sh has completed its execution. Do the following:
-2016-03-09 18:21:36 - Note what port SSH is running on.
-2016-03-09 18:21:36 - If the honeypot is running, shut it off.
-2016-03-09 18:21:36 - Reboot Bifrozt (this machine).
-2016-03-09 18:21:36 - Start the honeypot machine once Bifrozt is rebooted.
-2016-03-09 18:21:36 - Start HonSSH with: sudo honsshctrl start.
+<pre><code>=================================================
+
+Post setup actions:
+    1) If the honeypot is running, power it off now.
+    2) Reboot this machine.
+    3) Reconnect: ssh -l [name of user] 10.109.133.14 -p 59051 
+    4) Start the honeypot.
+    5) Start HonSSH: sudo honsshctrl start.
+
+=================================================
 </code></pre>
 
-<ul>
-<li>Its important that you take note of which port the SSH server will be running on,<code>53725</code> in this example, as its randomly generated during the setup.<br>
-</li>
-<li>If the honeypot is running, power it off.</li>
-<li>Reboot the Bifrozt machine.</li>
-<li>When the Bifrozt machine has rebooted, start the honeypot.</li>
-<li>When the honeypot is running, start HonSSH: <code>sudo honsshctrl start</code>. The <code>honsshctrl</code> script will start HonSSH in the background and start to tail the application log (<code>/opt/honssh/logs/honssh.log</code>), you can stop tailing the log using CTRL+C without stopping HonSSH.</li>
-</ul>
+<p>Make sure to take note of what port number has been chosen for SSH administration,<br>
+this displayed in <strong>3)</strong>. In this case the SSH server has been configured to run on port <strong>59051</strong>.<br>
+What should be mentioned is that, when starting HonSSH, it will start to tail its application log. This is only for convenience, pressing CTRL + C will stop <code>honsshctrl</code> from tailing the log but, it will <strong>not</strong> stop HonSSH.   </p>
 
 <hr>
 
 <p>Example of what the <code>bifrozt_setup.sh</code> script will look like.<br></p>
 
-<pre><code>========= bifrozt_setup.sh - 0.0.5 - 2016, Feb 24 - Are Hansen =========
+<pre><code>========= bifrozt_setup.sh - 0.0.7 - 2016-02-24 - Are Hansen =========
 
-2016-03-09 18:16:30 - Are we root?...Yes
-2016-03-09 18:16:30 - Is this operating system Ubuntu?...Yes
-2016-03-09 18:16:30 - Do we have two network interface cards?...Yes
-2016-03-09 18:16:30 - Installing all avalible system updates...
-2016-03-09 18:18:42 - Installing some minor dependencies...
-2016-03-09 18:18:42 - Adding Ansible PPA... 
-2016-03-09 18:18:43 - Installing Ansible... 
-2016-03-09 18:19:05 - Grabbing a clone of https://github.com/Bifrozt/bifrozt-ansible.git...
-2016-03-09 18:19:06 - Generating Ansible SSH keys...
-2016-03-09 18:19:07 - Setting up authentication key for root user (will be removed later)...
-2016-03-09 18:19:07 - Executing the playbook now...
 
-PLAY [Converting system into a honeypot router] ********************************
+2016-03-18 19:46:37 - [OKAY]: Are we root?...Yes 
+2016-03-18 19:46:37 - [OKAY]: Are we running Ubuntu?...Yes 
+2016-03-18 19:46:37 - [OKAY]: Do we have two network interface cards?...Yes 
+2016-03-18 19:46:37 - [TASK]: Installing all avalible system updates... 
+2016-03-18 19:49:10 - [OKAY]: All avalible system updates have been installed. 
+2016-03-18 19:49:11 - [TASK]: Installing base dependencies... 
+2016-03-18 19:49:11 - [OKAY]: Base dependencies has been installed. 
+2016-03-18 19:49:11 - [TASK]: Adding Ansible PPA...  
+2016-03-18 19:49:12 - [OKAY]: Ansible PPA has been added. 
+2016-03-18 19:49:12 - [TASK]: Installing Ansible...  
+2016-03-18 19:49:30 - [OKAY]: Ansible has been installed. 
+2016-03-18 19:49:30 - [TASK]: Configuring Ansible... 
+2016-03-18 19:49:30 - [OKAY]: Ansible has been configured. 
+2016-03-18 19:49:30 - [TASK]: Cloning master branch of Bifrozt into /tmp/bifrozt-ansible... 
+2016-03-18 19:49:32 - [OKAY]: The master branch of Bifrozt has been cloned into /tmp/bifrozt-ansible. 
+2016-03-18 19:49:32 - [TASK]: Setting up Ansible SSH keys... 
+2016-03-18 19:49:32 - [OKAY]: Generation of Ansible SSH keys completed. 
+2016-03-18 19:49:32 - [TASK]: Setting up authentication key for root user (will be removed later)... 
+2016-03-18 19:49:32 - [OKAY]: Authentication key for root has been created. 
+2016-03-18 19:49:32 - [TASK]: Executing the playbook now... 
+2016-03-18 19:51:05 - [OKAY]: Playbook exited with: 0 
+2016-03-18 19:51:05 - [TASK]: Generating IPv4 address of the honeypot... 
+2016-03-18 19:51:05 - [OKAY]: IPv4 address for the honeypot has been created. 
+2016-03-18 19:51:05 - [TASK]: Updating the MAC address of the honeypot... 
+2016-03-18 19:51:05 - [OKAY]: MAC address of the honeypot has been updated. 
+2016-03-18 19:51:05 - [TASK]: Generating new DHCP network... 
+2016-03-18 19:51:05 - [OKAY]: Network for the DHCP server has been created. 
+2016-03-18 19:51:05 - [INFO]: DHCP will be using this network: 192.168.249.0/24 
+2016-03-18 19:51:05 - [INFO]: The honeypot will be assigned this IPv4 address: 192.168.249.243 
+2016-03-18 19:51:05 - [TASK]: Updating configuration for interface eth1... 
+2016-03-18 19:51:05 - [OKAY]: Configuration for eth1 has been updated. 
+2016-03-18 19:51:05 - [TASK]: Restarting the eth1 interface... 
+2016-03-18 19:51:05 - [OKAY]: Restart of interface eth1 completed. 
+2016-03-18 19:51:05 - [TASK]: IPv4 address of eth1: 192.168.249.1 
+2016-03-18 19:51:05 - [TASK]: Restarting DHCP server... 
+2016-03-18 19:51:05 - [OKAY]: DHCP server has been restarted. 
+2016-03-18 19:51:05 - [TASK]: Updating honssh.cfg.default... 
+2016-03-18 19:51:05 - [OKAY]: Update of honssh.cfg.default completed. 
+2016-03-18 19:51:05 - [TASK]: Making active configuration file, honssh.cfg, from honssh.cfg.default... 
+2016-03-18 19:51:05 - [OKAY]: Creation of active configuration file completed. 
+2016-03-18 19:51:05 - [TASK]: Selecting a new SSH port for Bifrozt administration... 
+2016-03-18 19:51:05 - [TASK]: Updating sshd_config... 
+2016-03-18 19:51:05 - [OKAY]: /etc/ssh/sshd_config has been updated. 
+2016-03-18 19:51:05 - [TASK]: Updating firewall rules... 
+2016-03-18 19:51:05 - [OKAY]: Firewall rules has been updated. 
+2016-03-18 19:51:05 - [TASK]: Restarting SSH server... 
+2016-03-18 19:51:05 - [OKAY]: SSH server was restarted. 
+2016-03-18 19:51:05 - [INFO]: The SSH server is now running on TCP port: 59051 
+2016-03-18 19:51:05 - [TASK]: Applying new firewall rules... 
+2016-03-18 19:51:05 - [OKAY]: The new firewall rules was applied. 
+2016-03-18 19:51:05 - [TASK]: Removing existing "bifrozt-ansible" repo. 
+2016-03-18 19:51:05 - [OKAY]: Existing repo was removed. 
+2016-03-18 19:51:05 - [TASK]: Removing Ansible SSH keys... 
+2016-03-18 19:51:05 - [OKAY]: Ansible SSH keys was removed. 
+2016-03-18 19:51:05 - [TASK]: Removing Ansible from the system... 
+2016-03-18 19:51:07 - [OKAY]: Ansible was removed from the system. 
+2016-03-18 19:51:07 - [TASK]: Removing Ansible PPA... 
+2016-03-18 19:51:08 - [OKAY]: Ansible PPA was removed from the system. 
+2016-03-18 19:51:08 - [OKAY]: Post-execution clean up completed. 
+2016-03-18 19:51:08 - [OKAY]: Setup completed. 
 
-TASK [setup] *******************************************************************
-ok: [192.168.90.41]
 
-TASK [software : Running apt-get update] ***************************************
-ok: [192.168.90.41]
+=================================================
 
-TASK [software : Running apt-get upgrade] **************************************
-changed: [192.168.90.41]
+Post setup actions:
+    1) If the honeypot is running, power it off now.
+    2) Reboot this machine.
+    3) Reconnect: ssh -l [name of user] 10.109.133.14 -p 59051 
+    4) Start the honeypot.
+    5) Start HonSSH: sudo honsshctrl start.
 
-TASK [software : Installing dependecies from official apt repo] ****************
-changed: [192.168.90.41] =&gt; (item=[u'athena-jot', u'git', u'htop', u'isc-dhcp-server', u'ngrep', u'python-geoip', u'python-mysqldb', u'python-pip', u'python-twisted', u'tcpdump', u'tcpflow', u'tmux', u'vim', u'wget', u'whois'])
+=================================================
 
-TASK [software : Installing dependencies from pip] *****************************
-changed: [192.168.90.41] =&gt; (item=geoip2)
-ok: [192.168.90.41] =&gt; (item=requests)
-
-TASK [system : Creating logrotation for /var/log/firewall.log] *****************
-changed: [192.168.90.41]
-
-TASK [system : Setting permissions on /etc/logrotate.d/iptables] ***************
-ok: [192.168.90.41]
-
-TASK [system : Costumizing sysctl.conf] ****************************************
-changed: [192.168.90.41]
-
-TASK [system : Setting permissions on /etc/sysctl.conf] ************************
-changed: [192.168.90.41]
-
-TASK [system : Creating rsyslog for iptables] **********************************
-changed: [192.168.90.41]
-
-TASK [system : Setting permissions on /etc/rsyslog.d/13-iptables] **************
-ok: [192.168.90.41]
-
-TASK [system : Setting custom interval for rotating firewall.log] **************
-changed: [192.168.90.41]
-
-TASK [system : Setting correct permissions on /var/log/firewall.log] ***********
-changed: [192.168.90.41]
-
-TASK [system : Setting permissions on /var/spool/cron/crontabs/root] ***********
-changed: [192.168.90.41]
-
-TASK [system : Preparing HonSSH to start at boot] ******************************
-changed: [192.168.90.41]
-
-TASK [system : Setting permissions on /etc/rc.local] ***************************
-ok: [192.168.90.41]
-
-TASK [network : Configuring sshd to run on tcp/60777] **************************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/ssh/sshd_config] *******************
-ok: [192.168.90.41]
-
-TASK [network : Setting up isc-dhcp-server configuration] **********************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/dhcp/dhcpd.conf] *******************
-ok: [192.168.90.41]
-
-TASK [network : Configuring isc-dhcp-server to run on eth1] ********************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/default/isc-dhcp-server] ***********
-ok: [192.168.90.41]
-
-TASK [network : Configuring network interfaces] ********************************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/network/interfaces] ****************
-ok: [192.168.90.41]
-
-TASK [network : Setting up iptables for IPv4] **********************************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/network/ipv4hater] *****************
-ok: [192.168.90.41]
-
-TASK [network : Setting up iptables for IPv6] **********************************
-changed: [192.168.90.41]
-
-TASK [network : Setting permissions on /etc/network/ipv6hater] *****************
-ok: [192.168.90.41]
-
-TASK [honssh : Cloning the latest version of HonSSH] ***************************
-changed: [192.168.90.41]
-
-TASK [honssh : Removing default honsshctrl.sh] *********************************
-changed: [192.168.90.41]
-
-TASK [tools : Preparing to install custom Python modules] **********************
-changed: [192.168.90.41]
-
-TASK [tools : Installing Python modules] ***************************************
-changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/__init__.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/__init__.py'})
-changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/files.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/files.py'})
-changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/geoloc.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/geoloc.py'})
-changed: [192.168.90.41] =&gt; (item={u'dest': u'/usr/lib/python2.7/dist-packages/bzlib/sendto.py', u'src': u'usr/lib/python2.7/dist-packages/bzlib/sendto.py'})
-
-TASK [tools : Installing auth_info] ********************************************
-changed: [192.168.90.41]
-
-TASK [tools : Setting permissions on auth_info] ********************************
-changed: [192.168.90.41]
-
-TASK [tools : Installing bifrozt_config] ***************************************
-changed: [192.168.90.41]
-
-TASK [tools : Setting permissions on bifrozt_config] ***************************
-changed: [192.168.90.41]
-
-TASK [tools : Preparing to download GeoLite2-City database from Maxmind] *******
-changed: [192.168.90.41]
-
-TASK [tools : Removing default honsshctrl.sh] **********************************
-ok: [192.168.90.41]
-
-TASK [tools : Installing custom honsshctrl] ************************************
-changed: [192.168.90.41]
-
-TASK [tools : Setting permissions on /usr/local/bin/honsshctrl] ****************
-changed: [192.168.90.41]
-
-TASK [tools : Installing latests version of GeoLite2-City database from Maxmind] ***
-changed: [192.168.90.41]
-
-TASK [tools : Unpacking GeoLite2-City database from Maxmind] *******************
-changed: [192.168.90.41]
-
-TASK [cleanup : Removing all SSH keys and files that were used by Ansible] *****
-changed: [192.168.90.41] =&gt; (item=/etc/ansible/BZKEY/id_rsa)
-changed: [192.168.90.41] =&gt; (item=/etc/ansible/BZKEY/id_rsa.pub)
-changed: [192.168.90.41] =&gt; (item=/root/.ssh/authorized_keys)
-ok: [192.168.90.41] =&gt; (item=/root/.ssh/id_rsa)
-ok: [192.168.90.41] =&gt; (item=/root/.ssh/id_rsa.pub)
-changed: [192.168.90.41] =&gt; (item=/root/.ssh/known_hosts)
-
-TASK [cleanup : Starting purge of Ansible software] ****************************
-changed: [192.168.90.41]
-
-PLAY RECAP *********************************************************************
-192.168.90.41                : ok=44   changed=32   unreachable=0    failed=0   
-
-2016-03-09 18:21:36 - Assigning a randomized IPv4 address to the honeypot...
-2016-03-09 18:21:36 - Updating the MAC address of the honeypot...
-2016-03-09 18:21:36 - Generating new DHCP network...
-2016-03-09 18:21:36 - DHCP will be using this network: 10.120.197.0/24
-2016-03-09 18:21:36 - The honeypot will be assigned this IPv4 address: 10.120.197.106
-2016-03-09 18:21:36 - Updating configuration on interface eth1...
-2016-03-09 18:21:36 - Updating honssh.cfg.default...
-2016-03-09 18:21:36 - Making active configuration file, honssh.cfg, from honssh.cfg.default...
-2016-03-09 18:21:36 - Restarting the eth1 interface...
-2016-03-09 18:21:36 - IPv4 address has been assigned to the eth1 interface: 10.120.197.1
-2016-03-09 18:21:36 - Restarting DHCP server...
-2016-03-09 18:21:36 - Selecting a new SSH port for Bifrozt administration...
-2016-03-09 18:21:36 - Updating sshd_config...
-2016-03-09 18:21:36 - Updating firewall rules...
-2016-03-09 18:21:36 - Restarting SSH server...
-2016-03-09 18:21:36 - The SSH server is now running on TCP port: 53725
-2016-03-09 18:21:36 - Applying new firewall rules...
-2016-03-09 18:21:36 - The firewall is now accepting SSH connections on TCP port: 53725
-2016-03-09 18:21:36 - bifrozt_setup.sh has completed its execution. Do the following:
-2016-03-09 18:21:36 - Note what port SSH is running on.
-2016-03-09 18:21:36 - If the honeypot is running, shut it off.
-2016-03-09 18:21:36 - Reboot Bifrozt (this machine).
-2016-03-09 18:21:36 - Start the honeypot machine once Bifrozt is rebooted.
-2016-03-09 18:21:36 - Start HonSSH with: sudo honsshctrl start.
 </code></pre>
 
 <hr>
