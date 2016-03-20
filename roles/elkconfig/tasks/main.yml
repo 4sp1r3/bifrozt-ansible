@@ -1,8 +1,8 @@
 --- # Configuration tasks
+
 #
 #   --- Elasticsearch ---
 #
-
 - name: Installing elasticsearch.yml
   template: src=etc/elasticsearch/elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml 
 
@@ -12,7 +12,6 @@
 #
 #   --- Logstash ---
 #
-
 - name: Creating SSL directory certs
   file: path=/etc/pki/tls/certs state=directory owner=root group=root mode=0755 recurse=yes
 
@@ -28,7 +27,16 @@
 - name: Installing 01-lumberjack-input.conf
   template: src=etc/logstash/conf.d/01-lumberjack-input.conf dest=/etc/logstash/conf.d/01-lumberjack-input.conf
 
-- name: Installing 10-syslog.conf
+- name: Installing 07-ip-allow-ssh-eth0.conf
+  template: src=etc/logstash/conf.d/07-ip-allow-ssh-eth0.conf dest=/etc/logstash/conf.d/07-ip-allow-ssh-eth0.conf
+
+- name: Installing 08-ip-allow-eth1.conf
+  template: src=etc/logstash/conf.d/08-ip-allow-eth1.conf dest=/etc/logstash/conf.d/08-ip-allow-eth1.conf
+
+- name: Installing 09-ip-block-eth1.conf
+  template: src=etc/logstash/conf.d/09-ip-block-eth1.conf dest=/etc/logstash/conf.d/09-ip-block-eth1.conf
+
+- name: Installing 10-syslog.conf 
   template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
 
 - name: Installing 30-lumberjack-output.conf 
@@ -46,7 +54,6 @@
 #
 #	  --- Kibana ---
 #
-
 - name: Installing kibana.yml
   template: src=opt/kibana/config/kibana.yml dest=/opt/kibana/config/kibana.yml
 
