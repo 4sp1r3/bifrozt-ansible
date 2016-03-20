@@ -69,10 +69,20 @@ set -e
 #     * Supressed output from Ansible playbook.
 #     * The git_clone function can now diffirentiate between git branches.
 #
+#   - 0.0.8-DEV
+#     * User can select branch using script argument. 
+#
+#
+#   -------------------------------------------------------------- DEV NOTES
+#
+#   - If 'elkstack' branch is used. Check system resources from
+#     check_env()
+#
+#
 #   --------------------------------------------------------------
 #
 #
-declare version="0.0.7"
+declare version="0.0.8-DEV"
 declare author="Are Hansen"
 declare created="2016-02-24"
 declare -rx Script="${0##*/}"
@@ -91,6 +101,7 @@ declare bz_key="/etc/ansible/BZKEY"
 declare rdb='\033[1;7;31m'
 declare red='\033[1;31m'
 declare grn='\033[1;32m'
+declare ylb='\033[1;7;33m'
 declare ylw='\033[1;33m'
 declare blu='\033[1;34m'
 declare wht='\033[1;37m'
@@ -139,8 +150,14 @@ function time_stamp()
         3)
             echo -e "$time ${wht}[${end}${blu}TASK${end}${wht}]: $1 ${end}"
             ;;
+        4)
+            echo -e "$time ${wht}[${end}${ylb}WARN${end}${wht}]: $1 ${end}"
+            ;;
+        5)
+            echo -e "$time ${wht}[${end}${rdb}CRIT${end}${wht}]: $1 ${end}"
+            ;;
         *)
-            echo -e "$time ${wht}[${end}${rdb}FATAL${end}${wht}]: $FUNCNAME will only accept 0, 1, 2 or 3 as exit codes. ${end}"
+            echo -e "$time ${wht}[${end}${rdb}FATAL${end}${wht}]: $FUNCNAME received an invalid exit code: $2 ${end}"
             exit 1
             ;;
     esac
@@ -573,17 +590,6 @@ function conf_new_ssh()
 }
 
 
-# Validates MAC address. If the MAc validation fails it will terminate the script.
-function check_mac()
-{
-    if [[ "$1" =~ ^([a-fA-F0-9]{2}:){5}[a-zA-Z0-9]{2}$ ]]
-    then
-        main "$1" | tee "$setup_log"
-    else
-        time_stamp "The MAC address you provided, \"$1\", does not appear to be valid." "1"
-    fi
-}
-
 
 # Returns the IPv4 address from the dhcpd.conf.
 function honey_ip()
@@ -618,16 +624,26 @@ function wrap_up()
 }
 
 
-# Environmental checks.
+# Returns the total amount of memory in MB. 
+function env_check_mem()
+{
+    free -m \
+    | grep ^'Mem:' \
+    | awk '{ print $2 }'
+}
+
+
+# Returns the total number of CPU's.
+function env_check_cpu()
+{
+    grep -c 'processor' /proc/cpuinfo
+}
+
+
+# Basic environmental checks.
+# ARG 1 (optional): elkstack
 function env_checks()
 {
-    if [ "$(id -u)" = "0" ]
-    then
-        time_stamp "Are we root?...${grn}Yes${end}" "0"
-    else
-        time_stamp "$Script must be executed as root or with root privileges." "1"
-    fi
-
     if [ "$(check_distro)" = "Ubuntu" ]
     then
         time_stamp "Are we running Ubuntu?...${grn}Yes${end}" "0"
@@ -641,17 +657,65 @@ function env_checks()
     else
         time_stamp "This machine has less than two network interface cards. $Script expected to find \"eth0\" and \"eth1\"." "1"
     fi
+
+    case "$1" in
+        elkstack)
+            time_stamp "Do we meet the memory requirements for running ELK stack on this system?..." "3"
+            tot_ram="$(env_check_mem)"
+
+            if [[ "$tot_ram" -le "4096"  && "$tot_ram" -ge "3072" ]]
+            then
+                time_stamp "Your system has $tot_ram MB of RAM, 4096 MB is recommended. Add more to boost performance." "4"
+                time_stamp "You should SERIOUSLY consider adding more RAM to this installation." "5"
+                sleep 0.6
+            fi
+
+            if [ "$tot_ram" -le "3071" ]
+            then
+                time_stamp "Your system has $tot_ram MB of RAM. You should not be installing ELK stack on this system." "5"
+                time_stamp "Please add a minimum of 4096 MB of RAM before attempting to install ELK stack on this system." "1"
+                sleep 0.6
+            fi
+
+            if [ "$tot_ram" -gt "4096" ]
+            then
+                time_stamp "Your system has $tot_ram MB of RAM. Memory requirements for running ELK stack has been met." "0"
+                time_stamp "Add more RAM if you would like to improve performance." "0"
+            fi
+
+            time_stamp "Do we meet the processor requirements for running ELK stack on this system?..." "3"
+            tot_cpu="$(env_check_cpu)"
+
+            if [ "$tot_cpu" -ge "4" ]
+            then
+                time_stamp "Your system has $tot_cpu CPU's, processor requirements for running ELK stack has been met." "0"
+            fi
+
+            if [[ "$tot_cpu" -lt "4"  && "$tot_cpu" -ge "2" ]]
+            then
+                time_stamp "Your system has $tot_cpu CPU's, depending on the processors, the system might be able to run ELK stack." "4"
+                time_stamp "Add more CPU's if you would like to improve performance." "2"
+            fi
+
+            if [ "$tot_cpu" -lt "2" ]
+            then
+                time_stamp "Your system has only $tot_cpu CPU, the processor requirements for running ELK stack has NOT been met." "5"
+                time_stamp "The system requires at least 2 CPU's, 4 or more is recommended." "1"
+            fi
+            ;;
+    esac
 }
 
 
 # Call functions and pass arguments.
+# ARG 1: MAC address
+# ARG 2: Branch name
 function main()
 {
-    script_banner
+    env_checks "$2"
     verify_clean "startup"
-    env_checks
     apt_get_things
-    git_clone "$git_bzans" "$dst_bzans" "elkstack"
+    git_clone "$git_bzans" "$dst_bzans" "$2"
     gen_ssh_keys "$bz_key"
     run_play "$dst_bzans/playbook.yml" "$dst_bzans/hosts"
     setup_dhcp "$1"
@@ -661,12 +725,113 @@ function main()
 }
 
 
-if [ "$#" != "1" ]
-then
-    time_stamp "Missing argument. $Script requires the MAC address of your honeypot." "1"
-else
-    check_mac "$1"
-fi
+# Validates MAC address. If the MAC validation fails it will terminate the script.
+# ARG 1: MAC address
+# ARG 2: Branch ('master' selected if none is specified.)
+function check_mac()
+{
+    script_banner
+
+    if [[ "$1" =~ ^([a-fA-F0-9]{2}:){5}[a-zA-Z0-9]{2}$ ]]
+    then
+        time_stamp "MAC address appears to be valid." "0"
+    else
+        time_stamp "The MAC address you provided, \"$1\", does not appear to be valid." "1"
+    fi
+
+
+    if [ "$(id -u)" = "0" ]
+    then
+        time_stamp "Are we root?...${grn}Yes${end}" "0"
+        main "$1" "$2" | tee "$setup_log"
+    else
+        time_stamp "$Script must be executed as root or with root privileges." "1"
+    fi
+}
+
+
+function script_help()
+{
+echo -e "${wht}
+    Usage: $Script [${ylw}name of branch${end}${wht}] [${grn}MAC address of honeypot${end}${wht}]
+
+    There are three branches of Bifrozt
+    - ${ylw}dev${end}
+      ${wht}This branch is only used for testing during development.
+      It may contain new features and bug fixes but, is also
+      likely to break your system.${end}
+
+    - ${ylw}elk${end}
+      ${wht}Selecting this will install the stable version and also
+      install a full ELK stack. This branch is currently under
+      development and should be viewed in the save way as the
+      ${ylw}dev${end} ${wht}branch.
+      Given that this branch installs and configures ELK stack,
+      its also requires a lot more CPU and memory.
+
+      Minimum recommended: 
+      4x  CPU (or more)
+      4GB RAM (or more)${end}
+
+    - ${ylw}stable${end}
+      ${wht}This is the version that will be installed by default, it
+      has the least amount of bugs and has been deployed in live
+      environments multiple times...hence the name \"stable\" :)
+
+    Enter the name of the branch you wold like to install followed by the
+    MAC address of the honeypot.
+
+    sudo bash $Script${end} ${ylw}stable${end} ${grn}00:11:22:33:44:55${end}
+
+    ${wht}The entire setup takes between 5 - 15 minutes, depending on selected
+    branch and download speed.${end}
+
+"
+}
+
+
+case "$1" in
+    # Use the development branch
+    dev)
+        case "$2" in
+            "")
+                time_stamp "You must provide a MAC address" "1"
+                ;;
+            *)
+                check_mac "$2" "development"
+                ;;
+        esac
+        ;;
+    # Use the elkstack branch.
+    elk)
+        case "$2" in
+            "")
+                time_stamp "You must provide a MAC address" "1"
+                ;;
+            *)
+                check_mac "$2" "elkstack"
+                ;;
+        esac
+        ;;
+    help)
+        script_help
+        ;;
+    # Use the master branch.
+    stable)
+        case "$2" in
+            "")
+                time_stamp "You must provide a MAC address" "1"
+                ;;
+            *)
+                check_mac "$2" "master"
+                ;;
+        esac
+        ;;
+    *)
+        echo "Usage: $Script help"
+        exit 1
+        ;;
+esac
 
 
 exit 0
