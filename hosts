@@ -1,3 +1,5 @@
 [bifrozt]
 IPv4_OR_FQDN
 
+[bifrozt:vars]
+ipv4_eth0=IPv4_OR_FQDN

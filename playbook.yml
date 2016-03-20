@@ -1,12 +1,13 @@
----
-# Converts Ubuntu into a honeypot router
-- name: Starting Bifrozt setup
+--- # Installs and configures ELK stack
+- name: Bifrozt with ELK stack
   hosts: bifrozt
   remote_user: root
   roles:
+   - apt
    - software
    - system
    - network
    - honssh
    - tools
+   - elkconfig
    - cleanup

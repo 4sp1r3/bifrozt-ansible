@@ -1,0 +1,18 @@
+--- # Add required apt things
+- name: Adding Java 8 PPA
+  apt_repository: repo='ppa:webupd8team/java'
+
+- name: Adding Elasticsearch GPG key
+  apt_key: url=https://packages.elastic.co/GPG-KEY-elasticsearch state=present
+
+- name: Adding Elasticsearch repo 
+  apt_repository: repo='deb http://packages.elastic.co/elasticsearch/2.x/debian stable main' state=present
+
+- name: Adding Kibana 4 repo
+  apt_repository: repo='deb http://packages.elastic.co/kibana/4.4/debian stable main' state=present
+
+- name: Adding Logstash repo 
+  apt_repository: repo='deb http://packages.elastic.co/logstash/2.2/debian stable main' state=present
+
+- name: Adding Logstash Forwarder repo 
+  apt_repository: repo='deb http://packages.elasticsearch.org/logstashforwarder/debian stable main' state=present

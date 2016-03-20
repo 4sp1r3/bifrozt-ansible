@@ -1,17 +1,31 @@
---- # Installing dependencies.
+--- # Install ELK software
 - name: Running apt-get update
   apt: update_cache=yes
 
-- name: Installing dependecies from official apt repo
+- name: Check Oracle license
+  shell: /usr/bin/debconf-show oracle-java8-installer | awk '/accepted-oracle-license/{print $NF}'
+
+- name: Accept Oracle license
+  shell: echo 'oracle-java8-installer shared/accepted-oracle-license-v1-1 select true' | /usr/bin/debconf-set-selections
+
+- name: Installing required software using apt-get
   apt: name={{ item }} state=present
   with_items:
+   - apache2-utils
    - athena-jot
+   - elasticsearch
    - git
    - htop
    - isc-dhcp-server
+   - kibana
+   - logstash 
+   - logstash-forwarder
+   - nginx
    - ngrep
+   - oracle-java8-installer
    - python-geoip
    - python-mysqldb
+   - python-passlib
    - python-pip
    - python-twisted
    - tcpdump
@@ -21,9 +35,8 @@
    - wget
    - whois
 
-- name: Installing dependencies from pip
+- name: Installing required software using pip
   pip: name={{ item }} state=present
   with_items:
     - geoip2
     - requests
-

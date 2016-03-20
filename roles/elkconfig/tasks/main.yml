@@ -1,0 +1,60 @@
+--- # Configuration tasks
+#
+#   --- Elasticsearch ---
+#
+
+- name: Installing elasticsearch.yml
+  template: src=etc/elasticsearch/elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml 
+
+- name: Configuring Elasticsearch to start at boot
+  shell: update-rc.d elasticsearch defaults 95 10
+
+#
+#   --- Logstash ---
+#
+
+- name: Creating SSL directory certs
+  file: path=/etc/pki/tls/certs state=directory owner=root group=root mode=0755 recurse=yes
+
+- name: Creating SSL directory private
+  file: path=/etc/pki/tls/private state=directory owner=root group=root mode=0755 recurse=yes
+
+- name: Updating /etc/ssl/openssl.cnf
+  template: src=etc/ssl/openssl.cnf dest=/etc/ssl/openssl.cnf
+
+- name: Generate SSL certificates for Logstash
+  shell: openssl req -config /etc/ssl/openssl.cnf -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout /etc/pki/tls/private/logstash-forwarder.key -out /etc/pki/tls/certs/logstash-forwarder.crt
+
+- name: Installing 01-lumberjack-input.conf
+  template: src=etc/logstash/conf.d/01-lumberjack-input.conf dest=/etc/logstash/conf.d/01-lumberjack-input.conf
+
+- name: Installing 10-syslog.conf
+  template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
+
+- name: Installing 30-lumberjack-output.conf 
+  template: src=etc/logstash/conf.d/30-lumberjack-output.conf dest=/etc/logstash/conf.d/30-lumberjack-output.conf
+
+- name: Installing logstash-forwarder.conf
+  template: src=etc/logstash-forwarder.conf dest=/etc/logstash-forwarder.conf
+
+- name: Configuring Logstash to start at boot
+  shell: update-rc.d logstash defaults 96 9
+
+- name: Configuring Logstash-forwarder to start at boot
+  shell: update-rc.d logstash-forwarder defaults 96 9
+
+#
+#	  --- Kibana ---
+#
+
+- name: Installing kibana.yml
+  template: src=opt/kibana/config/kibana.yml dest=/opt/kibana/config/kibana.yml
+
+- name: Installing Nginx configuration
+  template: src=etc/nginx/sites-available/default.j2 dest=/etc/nginx/sites-available/default
+
+- name: Creating default Kibana user and password
+  htpasswd: path=/etc/nginx/htpasswd.users name=bifrozt password=EH1603141806 owner=root group=www-data mode=0640
+
+- name: Configuring Kibana to start at boot
+  shell: update-rc.d kibana defaults 96 9
