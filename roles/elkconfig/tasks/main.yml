@@ -27,14 +27,14 @@
 - name: Installing 01-lumberjack-input.conf
   template: src=etc/logstash/conf.d/01-lumberjack-input.conf dest=/etc/logstash/conf.d/01-lumberjack-input.conf
 
-- name: Installing 07-ip-allow-ssh-eth0.conf
-  template: src=etc/logstash/conf.d/07-ip-allow-ssh-eth0.conf dest=/etc/logstash/conf.d/07-ip-allow-ssh-eth0.conf
+- name: Installing 02-iptables.conf
+  template: src=etc/logstash/conf.d/02-iptables.conf dest=/etc/logstash/conf.d/02-iptables.conf
 
-- name: Installing 08-ip-allow-eth1.conf
-  template: src=etc/logstash/conf.d/08-ip-allow-eth1.conf dest=/etc/logstash/conf.d/08-ip-allow-eth1.conf
+- name: Creacting grok patterns directory
+  file: path=/etc/logstash/patterns state=directory owner=root group=root mode=0755
 
-- name: Installing 09-ip-block-eth1.conf
-  template: src=etc/logstash/conf.d/09-ip-block-eth1.conf dest=/etc/logstash/conf.d/09-ip-block-eth1.conf
+- name: Installing custom grok patterns
+  template: src=etc/logstash/patterns/iptables dest=/etc/logstash/patterns/iptables
 
 - name: Installing 10-syslog.conf 
   template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
