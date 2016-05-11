@@ -33,8 +33,11 @@
 - name: Creacting grok patterns directory
   file: path=/etc/logstash/patterns state=directory owner=root group=root mode=0755
 
-- name: Installing custom grok patterns
+- name: Installing grok pattern for iptables
   template: src=etc/logstash/patterns/iptables dest=/etc/logstash/patterns/iptables
+
+- name: Installing grok pattern for HonSSH daily logs
+  template: src=etc/logstash/patterns/honssh_dail dest=/etc/logstash/patterns/honssh_dail
 
 - name: Installing 10-syslog.conf 
   template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf

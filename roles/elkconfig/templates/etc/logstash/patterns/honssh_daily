@@ -1,0 +1,5 @@
+#
+#   Used to parse all the daily logs from HonSSH
+#
+PASSWD (\S+)
+DAILY_LOG %{YEAR}%{MONTHNUM}%{MONTHDAY}_%{HOUR}%{MINUTE}%{SECOND}_%{NUMBER},%{IP:src_ip},%{USERNAME:user},%{PASSWD:password},%{WORD:success}
