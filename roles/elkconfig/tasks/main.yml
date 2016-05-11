@@ -30,6 +30,15 @@
 - name: Installing 02-iptables.conf
   template: src=etc/logstash/conf.d/02-iptables.conf dest=/etc/logstash/conf.d/02-iptables.conf
 
+- name: Installing 03-honssh-daily.logs.conf
+  template: src=etc/logstash/conf.d/03-honssh-daily.logs.conf dest=/etc/logstash/conf.d/03-honssh-daily.logs.conf
+
+- name: Installing 10-syslog.conf 
+  template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
+
+- name: Installing 30-lumberjack-output.conf 
+  template: src=etc/logstash/conf.d/30-lumberjack-output.conf dest=/etc/logstash/conf.d/30-lumberjack-output.conf
+
 - name: Creacting grok patterns directory
   file: path=/etc/logstash/patterns state=directory owner=root group=root mode=0755
 
@@ -38,12 +47,6 @@
 
 - name: Installing grok pattern for HonSSH daily logs
   template: src=etc/logstash/patterns/honssh_dail dest=/etc/logstash/patterns/honssh_dail
-
-- name: Installing 10-syslog.conf 
-  template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
-
-- name: Installing 30-lumberjack-output.conf 
-  template: src=etc/logstash/conf.d/30-lumberjack-output.conf dest=/etc/logstash/conf.d/30-lumberjack-output.conf
 
 - name: Installing logstash-forwarder.conf
   template: src=etc/logstash-forwarder.conf dest=/etc/logstash-forwarder.conf
