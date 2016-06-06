@@ -1,32 +1,60 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>Bifrozt-ansible by Bifrozt</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Bifrozt-ansible by Bifrozt</title>
   </head>
+
   <body>
-    <section class="page-header">
-      <h1 class="project-name">Bifrozt-ansible</h1>
-      <h2 class="project-tagline">Deploy Bifrozt using Ansible</h2>
-      <a href="https://github.com/Bifrozt/bifrozt-ansible" class="btn">View on GitHub</a>
-      <a href="https://github.com/Bifrozt/bifrozt-ansible/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/Bifrozt/bifrozt-ansible/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
 
-    <section class="main-content">
-      <hr>
+    <header>
+      <div class="container">
+        <h1>Bifrozt-ansible</h1>
+        <h2>Deploy Bifrozt using Ansible</h2>
 
-<p>This document will provide an overview of how the Bifrozt deployment should look like and how it will work once it's complete, define the requirements for this deployment, explain the two different ways to deploy Bifrozt and provide a step by step instruction of the most common method.</p>
+        <section id="downloads">
+          <a href="https://github.com/Bifrozt/bifrozt-ansible/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/Bifrozt/bifrozt-ansible/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/Bifrozt/bifrozt-ansible" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <hr>
+
+<p>This document will </p>
+
+<ul>
+<li>Provide an overview of what the Bifrozt deployment should look like</li>
+<li>Define its requirements</li>
+<li>Explain the installation</li>
+<li>Provide instructions on how to verify that it's working correctly</li>
+</ul>
+
+<p>Any topic <strong>not</strong> covered within these sections are beyond the scope of the developer.
+Everything else is left as an exercise to the end user.
+Examples of such topics are but not limited to:</p>
+
+<ul>
+<li>Configuration of virtual networking within various hypervisors</li>
+<li>Issues that are the result of the end user changing the configuration files</li>
+<li>Writing parts of a thesis or school project (really???)</li>
+<li>Problems not related to SSH communication with the honeypot and/or the Bifrozt firewall</li>
+</ul>
 
 <hr>
 
 <h4>
-<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview.</h4>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Overview.</strong>
+</h4>
 
 <p>Generally speaking, Bifrozt is a NAT device with a DHCP server that is usually deployed with one NIC (eth0) connected directly to the Internet and one NIC (eth1) connected to the internal network.<br></p>
 
@@ -41,10 +69,12 @@ To prevent the attackers from using the honeypot to attack other systems it will
 <hr>
 
 <h4>
-<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements.</h4>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Requirements.</strong>
+</h4>
 
 <h5>
-<a id="hardware" class="anchor" href="#hardware" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Hardware.</h5>
+<a id="hardware" class="anchor" href="#hardware" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Hardware.</strong>
+</h5>
 
 <p>Minimum hardware requirements (recommended within parenthesis).</p>
 
@@ -64,7 +94,8 @@ To prevent the attackers from using the honeypot to attack other systems it will
 </ul>
 
 <h5>
-<a id="software" class="anchor" href="#software" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Software</h5>
+<a id="software" class="anchor" href="#software" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Software.</strong>
+</h5>
 
 <p>Bifrozt</p>
 
@@ -82,7 +113,8 @@ To prevent the attackers from using the honeypot to attack other systems it will
 <hr>
 
 <h4>
-<a id="installation-options" class="anchor" href="#installation-options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation options.</h4>
+<a id="installation-options" class="anchor" href="#installation-options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Installation options.</strong>
+</h4>
 
 <p>There are mainly two ways of installing the components that turns a system into a honeypot router (aka. Bifrozt)</p>
 
@@ -97,7 +129,8 @@ To prevent the attackers from using the honeypot to attack other systems it will
 <br></p>
 
 <h5>
-<a id="install-locally-using-ansible" class="anchor" href="#install-locally-using-ansible" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install locally using Ansible.</h5>
+<a id="install-locally-using-ansible" class="anchor" href="#install-locally-using-ansible" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><strong>Install locally using Ansible.</strong>
+</h5>
 
 <p>This is the most common way of deploying Bifrozt but, can also be a bit tricky if you never used Ansible before, so i've created a bash script that does most of the tasks for you.<br>
 Even tho i've created this script i'd like you to be aware of what this script is doing, this will help you troubleshoot any potential issues with it and give a better understanding of the process.
@@ -219,15 +252,9 @@ Post setup actions:
 </code></pre>
 
 <hr>
+      </section>
+    </div>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/Bifrozt/bifrozt-ansible">Bifrozt-ansible</a> is maintained by <a href="https://github.com/Bifrozt">Bifrozt</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
-
-  
+    
   </body>
 </html>
