@@ -4,7 +4,7 @@
 #   --- Elasticsearch ---
 #
 - name: Installing elasticsearch.yml
-  template: src=etc/elasticsearch/elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml 
+  template: src=etc/elasticsearch/elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml
 
 - name: Configuring Elasticsearch to start at boot
   shell: update-rc.d elasticsearch defaults 95 10
@@ -31,12 +31,12 @@
   template: src=etc/logstash/conf.d/02-iptables.conf dest=/etc/logstash/conf.d/02-iptables.conf
 
 - name: Installing 03-honssh-daily.logs.conf
-  template: src=etc/logstash/conf.d/03-honssh-daily.logs.conf dest=/etc/logstash/conf.d/03-honssh-daily.logs.conf
+  template: src=etc/logstash/conf.d/03-honssh-daily-logs.conf dest=/etc/logstash/conf.d/03-honssh-daily-logs.conf
 
-- name: Installing 10-syslog.conf 
+- name: Installing 10-syslog.conf
   template: src=etc/logstash/conf.d/10-syslog.conf dest=/etc/logstash/conf.d/10-syslog.conf
 
-- name: Installing 30-lumberjack-output.conf 
+- name: Installing 30-lumberjack-output.conf
   template: src=etc/logstash/conf.d/30-lumberjack-output.conf dest=/etc/logstash/conf.d/30-lumberjack-output.conf
 
 - name: Creacting grok patterns directory
@@ -46,7 +46,7 @@
   template: src=etc/logstash/patterns/iptables dest=/etc/logstash/patterns/iptables
 
 - name: Installing grok pattern for HonSSH daily logs
-  template: src=etc/logstash/patterns/honssh_dail dest=/etc/logstash/patterns/honssh_dail
+  template: src=etc/logstash/patterns/honssh_daily dest=/etc/logstash/patterns/honssh_daily
 
 - name: Installing logstash-forwarder.conf
   template: src=etc/logstash-forwarder.conf dest=/etc/logstash-forwarder.conf
@@ -58,7 +58,7 @@
   shell: update-rc.d logstash-forwarder defaults 96 9
 
 #
-#	  --- Kibana ---
+#   --- Kibana ---
 #
 - name: Installing kibana.yml
   template: src=opt/kibana/config/kibana.yml dest=/opt/kibana/config/kibana.yml
