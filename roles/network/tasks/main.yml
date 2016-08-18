@@ -2,8 +2,6 @@
 
 - name: Configuring sshd to run on tcp/60777
   template: src=etc/ssh/sshd_config dest=/etc/ssh/sshd_config
-  notify: 
-  - restart ssh
 
 - name: Setting permissions on /etc/ssh/sshd_config 
   file: path=/etc/ssh/sshd_config owner=root group=root mode=0644
@@ -16,8 +14,6 @@
 
 - name: Configuring isc-dhcp-server to run on eth1
   template: src=etc/default/isc-dhcp-server dest=/etc/default/isc-dhcp-server
-  notify:
-  - restart dhcp
 
 - name: Setting permissions on /etc/default/isc-dhcp-server
   file: path=/etc/default/isc-dhcp-server owner=root group=root mode=0644
